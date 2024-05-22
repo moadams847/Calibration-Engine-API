@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 import pandas as pd
-from pycaret.regression import load_model, predict_model
+# from pycaret.regression import load_model, predict_model
 import pickle
 import gzip
 import joblib
