@@ -14,8 +14,8 @@ app = Flask(__name__)
 def index():
     return 'Welcome to the Calibration Engine API!'
 
-# @app.route('/calibration-engine-api/PM25/v1/', methods=['GET', 'POST'])
-@app.route('/PM25/v1/', methods=['GET', 'POST'])
+@app.route('/calibration-engine-api/PM25/v1/', methods=['GET', 'POST'])
+# @app.route('/PM25/v1/', methods=['GET', 'POST'])
 def predict_datapoints():
     if request.method == 'GET':
         return jsonify({'Instruction': 'Send JSON data with Hum, Temp, and PM2_5 for calibration'})
@@ -53,8 +53,8 @@ def predict_datapoints():
         return jsonify({'error': f'An error occurred: {str(e)}'}), 500
 
 
-# if __name__ == "__main__":
-#     app.run(host="0.0.0.0", debug=False)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", debug=False)
 
 
 #test 
