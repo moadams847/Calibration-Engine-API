@@ -14,7 +14,7 @@ app = Flask(__name__)
 def index():
     return 'Welcome to the Calibration Engine API!'
 
-@app.route('/calibration-engine-api/PM25/v1/', methods=['GET', 'POST'])
+# @app.route('/calibration-engine-api/PM25/v2/', methods=['GET', 'POST'])
 # @app.route('/PM25/v1/', methods=['GET', 'POST'])
 def predict_datapoints():
     if request.method == 'GET':
@@ -40,21 +40,23 @@ def predict_datapoints():
 
         # Apply the formula to calculate Corrected PM2_5
         print(json_to_df)
-        json_to_df['calibrated_PM2_5'] = 332.38 + (2.41 * json_to_df['PM2_5']) + (-6.66 * json_to_df['Temp']) + (-1.55 * json_to_df['Hum'])
+        calibrated_PM2_5 = 332.38 + (2.41 * json_to_df['PM2_5']) + (-6.66 * json_to_df['Temp']) + (-1.55 * json_to_df['Hum'])
+        calibrated_PM2_5_df = calibrated_PM2_5.to_frame(name='Calibrated_PM2_5')
+
 
         # predictions_array = model.predict(df_for_calibration)
         # predictions = pd.DataFrame(predictions_array, columns=['calibrated_PM2_5'], index = json_to_df.index)
 
         # Combine predictions with original data
         # combined_df = pd.concat([json_to_df, predictions['calibrated_PM2_5']], axis=1)
-        return json_to_df.to_json(orient='records')
+        return calibrated_PM2_5_df.to_json(orient='records')
 
     except Exception as e:
         return jsonify({'error': f'An error occurred: {str(e)}'}), 500
 
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", debug=False)
+# if __name__ == "__main__":
+#     app.run(host="0.0.0.0", debug=False)
 
 
 #test 
