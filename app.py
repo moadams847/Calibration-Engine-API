@@ -14,15 +14,11 @@ def decompress_pickle_gzip(file_path):
 model = decompress_pickle_gzip('assets/model.pkl.gz')
 model = joblib.load(model)
 
-# # Load the model once, when the app starts
-# model = load_model('assets/correction_factor_random_forest_sensor960-25-April-2024')
-
 @app.route('/')
 def index():
     return 'Welcome to the Calibration Engine API!'
 
 @app.route('/calibration-engine-api/PM25/v1/', methods=['GET', 'POST'])
-# @app.route('/PM25/v1/', methods=['GET', 'POST'])
 def predict_datapoints():
     if request.method == 'GET':
         return jsonify({'Instruction': 'Send JSON data with Hum, Temp, and PM2_5 for calibration'})
@@ -31,40 +27,43 @@ def predict_datapoints():
     try:
         # Ensure there is JSON data and it is the correct format
         json_data = request.json
+        print(json_data)
         if not json_data:
             return jsonify({'error': 'No JSON data provided'}), 400
 
-        # Create DataFrame from JSON, handle potential errors in key names
+        # Convert JSON data to DataFrame
         try:
-            json_to_df = pd.read_json(json_data)
-            df_for_calibration = json_to_df[['Hum', 'Temp', 'PM2_5']]
-        except KeyError as e:
-            return jsonify({'error': f'Missing columns in the data: {str(e)}'}), 400
+            if isinstance(json_data, list):
+                # Handle list of JSON objects
+                json_to_df = pd.DataFrame(json_data)
+            elif isinstance(json_data, dict):
+                # Handle single JSON object
+                json_to_df = pd.DataFrame([json_data])
+            else:
+                return jsonify({'error': 'Unsupported JSON format'}), 400
 
-        # Make predictions
-        # predictions = predict_model(model, data=df_for_calibration)
-        # predictions.rename(columns={'prediction_label': 'calibrated_PM2_5'}, inplace=True)
+            # Ensure required columns are present
+            required_columns = ['hum', 'temp', 'pm2_5']
+            for col in required_columns:
+                if col not in json_to_df.columns:
+                    return jsonify({'error': f'Missing column: {col}'}), 400
 
-        predictions_array = model.predict(df_for_calibration)
-        predictions = pd.DataFrame(predictions_array, columns=['calibrated_PM2_5'], index = json_to_df.index)
+        except ValueError as e:
+            return jsonify({'error': f'Error creating DataFrame: {str(e)}'}), 400
 
-        # Combine predictions with original data
-        combined_df = pd.concat([json_to_df, predictions['calibrated_PM2_5']], axis=1)
-        return combined_df.to_json(orient='records')
+        # Apply the formula to calculate Corrected PM2_5
+        try:
+            predictions_array = model.predict(json_to_df)
+            predictions_df = pd.DataFrame(predictions_array, columns=['calibrated_pm2_5'], index = json_to_df.index)
+
+        except Exception as e:
+            return jsonify({'error': f'Error calculating calibrated PM2_5: {str(e)}'}), 500
+
+        return predictions_df.to_json(orient='records')
 
     except Exception as e:
         return jsonify({'error': f'An error occurred: {str(e)}'}), 500
-
-
+      
 if __name__ == "__main__":
     app.run(host="0.0.0.0", debug=False)
-
-
-#test 
-# from flask import Flask
-# app = Flask(__name__)
-
-# @app.route('/')
-# def hello_world():
-#     return 'Hello, World!'
 
