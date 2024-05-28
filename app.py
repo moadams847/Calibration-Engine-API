@@ -51,15 +51,21 @@ def predict_datapoints():
         except ValueError as e:
             return jsonify({'error': f'Error creating DataFrame: {str(e)}'}), 400
 
-        # Apply the formula to calculate Corrected PM2_5
+        # Apply the formula to calculate Corrected pm2_5
         try:
-            predictions_array = model.predict(json_to_df)
-            predictions_df = pd.DataFrame(predictions_array, columns=['calibrated_pm2_5'], index = json_to_df.index)
+            # print(json_to_df)
+            filtered_df = json_to_df[['hum', 'temp', 'pm2_5']]
+            predictions_array = model.predict(filtered_df)
+            json_to_df_dropped_pm2_5 = json_to_df.drop(columns=["pm2_5"])
+            # print(json_to_df_dropped_pm2_5)
+            predictions_df = pd.DataFrame(predictions_array, columns=['pm2_5'], index = json_to_df.index)
+            combined_df = pd.concat([predictions_df, json_to_df_dropped_pm2_5], axis=1)
+            print(combined_df)
 
         except Exception as e:
-            return jsonify({'error': f'Error calculating calibrated PM2_5: {str(e)}'}), 500
+            return jsonify({'error': f'Error calculating calibrated pm2_5: {str(e)}'}), 500
 
-        return predictions_df.to_json(orient='records')
+        return combined_df.to_json(orient='records')
 
     except Exception as e:
         return jsonify({'error': f'An error occurred: {str(e)}'}), 500
