@@ -70,7 +70,7 @@ def predict_datapoints():
 
             #convert to df structure
             predictions_df_pm10 = pd.DataFrame(predictions_array_pm10, columns=['pm10'], index = json_to_df.index)
-            print(predictions_df_pm10)
+            print(predictions_df_pm10)cls
 
             #drop
             json_to_df_dropped_pm2_5_pm10 = json_to_df.drop(columns=["pm2_5", "pm10"])
