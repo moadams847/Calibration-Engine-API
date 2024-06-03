@@ -4,8 +4,21 @@ from pycaret.regression import load_model, predict_model
 import pickle
 import gzip
 import joblib
+from flask_httpauth import HTTPBasicAuth
 
 app = Flask(__name__)
+auth = HTTPBasicAuth()
+
+# Dummy user data for demonstration
+users = {
+    "Singh": "RR253675212LU",
+    "Adams": "Ad@m$05@080W)+]:"
+}
+
+@auth.verify_password
+def verify_password(username, password):
+    if username in users and users[username] == password:
+        return username
 
 def decompress_pickle_gzip(file_path):
     with gzip.open(file_path, 'rb') as f:
@@ -22,6 +35,7 @@ def index():
     return 'Welcome to the Calibration Engine API!'
 
 @app.route('/calibration-engine-api/v1/', methods=['GET', 'POST'])
+@auth.login_required
 def predict_datapoints():
     if request.method == 'GET':
         return jsonify({'Instruction': 'Send JSON data with Hum, Temp, and PM2_5 for calibration'})
@@ -90,4 +104,3 @@ def predict_datapoints():
       
 if __name__ == "__main__":
     app.run(host="0.0.0.0", debug=False)
-
