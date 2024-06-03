@@ -5,15 +5,34 @@ import pickle
 import gzip
 import joblib
 from flask_httpauth import HTTPBasicAuth
+import os
+from dotenv import load_dotenv
 
 app = Flask(__name__)
 auth = HTTPBasicAuth()
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Access the environment variables
+user_singh = os.getenv('USER_SINGH')
+user_adams = os.getenv('USER_ADAMS')
+
+# Check if the environment variables are set
+if not user_singh or not user_adams:
+    raise EnvironmentError("Required environment variables are not set.")
 
 # Dummy user data for demonstration
 users = {
     "Singh": "RR253675212LU",
     "Adams": "Ad@m$05@080W)+]:"
 }
+
+# # Dummy user data for demonstration
+# users = {
+#     "Singh": user_singh,
+#     "Adams": user_singh
+# }
 
 @auth.verify_password
 def verify_password(username, password):
